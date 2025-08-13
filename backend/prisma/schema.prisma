@@ -1,0 +1,60 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Category {
+  BEBIDAS
+  ALIMENTOS
+  HIGIENE
+  LIMPEZA
+  OUTROS
+}
+
+enum PaymentMethod {
+  DINHEIRO
+  CARTAO_DEBITO
+  CARTAO_CREDITO
+  PIX
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id       Int        @id @default(autoincrement())
+  name     String
+  price    Float
+  barcode  String     @unique
+  category Category
+  stock    Int
+  isActive Boolean    @default(true)
+  SaleItem SaleItem[]
+
+  @@map("products")
+}
+
+model Sale {
+  id            Int           @id @default(autoincrement())
+  total         Float
+  paymentMethod PaymentMethod @default(DINHEIRO)
+  createdAt     DateTime      @default(now())
+  items         SaleItem[]
+
+  @@map("sales")
+}
+
+model SaleItem {
+  id        Int     @id @default(autoincrement())
+  sale      Sale    @relation(fields: [saleId], references: [id])
+  saleId    Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  barcode   String  @default("")
+  quantity  Int
+  unitPrice Float
+  subtotal  Float
+
+  @@map("sale_items")
+}
